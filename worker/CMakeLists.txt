@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.26)
+cmake_minimum_required(VERSION 3.15)
 project(fits_read)
 
 set(CMAKE_CXX_STANDARD 20)
@@ -27,17 +27,22 @@ else ()
     PKG_SEARCH_MODULE(CFITSIO REQUIRED cfitsio)
     if (CFITSIO_FOUND)
         message(STATUS "Found cfitsio using pkg-config")
-        include_directories (${CFITSIO_INCLUDE_DIRS})
+        include_directories(${CFITSIO_INCLUDE_DIRS})
     else ()
         message(FATAL_ERROR "Could not find cfitsio")
     endif ()
-endif()
+endif ()
 set(LINK_LIBS
         ${LINK_LIBS}
         ${CFITSIO_LIBRARIES}
         fmt
 )
 
-
-add_executable(fits_read main.cpp)
-target_link_libraries(fits_read ${LINK_LIBS})
+add_executable(fits_read main.cpp
+        ReaderService.cpp
+        ReaderService.h)
+target_link_libraries(fits_read
+        PRIVATE
+        fitsReaderProto
+        ${LINK_LIBS}
+)

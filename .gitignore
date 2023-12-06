@@ -1,0 +1,8 @@
+/worker/cmake-build-debug/
+/worker/cmake-build-release/
+/worker/cmake-build-relwithdebinfo/
+
+.idea
+/cmake-build-debug/
+/cmake-build-release/
+/cmake-build-relwithdebinfo/

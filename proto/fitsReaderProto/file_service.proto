@@ -1,0 +1,30 @@
+syntax = "proto3";
+
+package fitsReaderProto;
+
+
+service FileService {
+  // Basic status check to ensure microservice is running
+  rpc CheckStatus(Empty) returns  (StatusResponse) {}
+  rpc GetFileInfo (FileInfoRequest) returns (FileInfoResponse) {}
+}
+
+message Empty {}
+
+message StatusResponse {
+  bool status = 1;
+  string statusMessage = 2;
+}
+
+message FileInfoRequest {
+  string fileName = 1;
+  string hdu = 2;
+}
+
+message FileInfoResponse {
+  string fileName = 1;
+  string hduName = 2;
+  string hduType = 3;
+  string dataType = 4;
+  repeated int32 hduShape = 5;
+}

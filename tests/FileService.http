@@ -1,0 +1,13 @@
+###
+GRPC localhost:8080/fitsReaderProto.FileService/CheckStatus
+
+<> 2023-12-05T144741.OK.json
+<> 2023-12-05T144736.OK.json
+
+### File info
+GRPC localhost:8080/fitsReaderProto.FileService/GetFileInfo
+
+{
+  "fileName": "testFile.fits",
+  "hdu": "0"
+}
