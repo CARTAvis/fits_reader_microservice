@@ -5,7 +5,6 @@
 
 grpc::Status ReaderService::CheckStatus(grpc::ServerContext* context, const fitsReaderProto::Empty* request,
                                         fitsReaderProto::StatusResponse* response) {
-    std::cout << "Server: CheckStatus called" << std::endl;
     response->set_status(true);
     response->set_statusmessage("OK");
     return grpc::Status::OK;

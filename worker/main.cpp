@@ -29,6 +29,7 @@ inline float big2little(float f) {
 }
 
 int main(int argc, char** argv) {
+    int port = argv[1] ? std::stoi(argv[1]) : 8080;
     // int status = 0;
     // fitsfile *fptr;
     // int dims = 4;
@@ -94,7 +95,7 @@ int main(int argc, char** argv) {
     // delete[] data_ptr;
 
     grpc::ServerBuilder builder;
-    auto server_address = "localhost:8080";
+    const auto server_address = fmt::format("localhost:{}", port);
     builder.AddListeningPort(server_address, grpc::InsecureServerCredentials());
 
     ReaderService reader_service;
