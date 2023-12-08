@@ -23,8 +23,8 @@ message FileInfoRequest {
 
 message FileInfoResponse {
   string fileName = 1;
-  string hduName = 2;
-  string hduType = 3;
-  string dataType = 4;
+  int32 hduNum = 2;
+  int32 hduType = 3;
+  int32 dataType = 4;
   repeated int32 hduShape = 5;
 }

@@ -1,23 +1,29 @@
 import { WorkerPool } from "./workerPool/workerPool";
+import { FileInfoResponse } from "./proto/fitsReaderProto/file_service";
 
 async function main() {
-  const workerPool = new WorkerPool(4, 8080);
+  const workerPool = new WorkerPool(1, 8080);
   console.time("getStatus");
   await workerPool.checkStatus();
   console.timeEnd("getStatus");
   let isOk = true;
   console.time("getFileInfo");
+
+  let fileInfoResponse: FileInfoResponse | undefined;
   // const promises = [];
-  for (let i = 0; i < 1000; i++) {
-    const inputFile = "myfits.fits";
+  for (let i = 0; i < 1; i++) {
+    const inputFile = "/Users/angus/cubes/C.fits";
     // promises.push(workerPool.getFileInfo(inputFile, "0").then(res=>isOk &&= res.fileName === inputFile));
-    const fileInfoResponse = await workerPool.getFileInfo(inputFile, "0");
-    isOk &&= fileInfoResponse.fileName === inputFile;
+    fileInfoResponse = await workerPool.getFileInfo(inputFile, "0");
+    isOk &&= fileInfoResponse.fileName === inputFile && fileInfoResponse.hduShape?.[0] === 512;
   }
   // await Promise.all(promises);
+
   console.timeEnd("getFileInfo");
   console.log(isOk ? "OK" : "ERROR");
-  //console.log(fileInfoResponse);
+  if (fileInfoResponse) {
+    console.log(fileInfoResponse);
+  }
 }
 
 main().catch(console.error);

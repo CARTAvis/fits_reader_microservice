@@ -38,9 +38,12 @@ set(LINK_LIBS
         fmt
 )
 
-add_executable(fits_read main.cpp
-        ReaderService.cpp
-        ReaderService.h)
+add_executable(fits_read
+        src/main.cpp
+        src/services/ReaderService.cpp
+        src/services/ReaderService.h
+        src/util/fits_util.cpp
+        src/util/fits_util.h)
 target_link_libraries(fits_read
         PRIVATE
         fitsReaderProto

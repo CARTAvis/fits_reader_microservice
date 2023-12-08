@@ -1,0 +1,4 @@
+# Empty C/C++ Code Style settings
+BasedOnStyle: Google
+
+ColumnLimit: 140

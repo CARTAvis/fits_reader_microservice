@@ -1,18 +1,11 @@
-#include <vector>
-#include <chrono>
-#include <cstdio>
+#include <fitsReaderProto/file_service.grpc.pb.h>
+#include <fmt/core.h>
+#include <grpcpp/server_builder.h>
+
 #include <fstream>
 #include <iostream>
 
-#include <fmt/core.h>
-#include <fitsio.h>
-#include <grpc/grpc.h>
-#include <grpcpp/server_builder.h>
-
-#include <fitsReaderProto/file_service.pb.h>
-#include <fitsReaderProto/file_service.grpc.pb.h>
-
-#include "ReaderService.h"
+#include "services/ReaderService.h"
 
 inline float big2little(float f) {
     union {
