@@ -4,6 +4,8 @@ find_package(gRPC CONFIG REQUIRED)
 
 set(PROTO_FILES
         fitsReaderProto/file_service.proto
+        ../controller/src/utils/uuid.cpp
+        ../controller/src/utils/uuid.h
 )
 
 # Add Library target with protobuf sources

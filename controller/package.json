@@ -9,11 +9,13 @@
   "license": "ISC",
   "devDependencies": {
     "@types/node": "^20.10.3",
+    "@types/uuid": "^9.0.7",
     "ts-proto": "^1.165.0"
   },
   "dependencies": {
     "@grpc/grpc-js": "^1.9.12",
     "eslint": "^8.55.0",
-    "prettier": "^3.1.0"
+    "prettier": "^3.1.0",
+    "uuid": "^9.0.1"
   }
 }
