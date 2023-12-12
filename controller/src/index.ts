@@ -3,7 +3,7 @@ import { FileInfoResponse, ImageDataResponse } from "./proto/fitsReaderProto/fil
 import { arrayStats } from "./utils/arrays";
 
 async function main() {
-  const numWorkers = 1;
+  const numWorkers = 32;
   const workerPool = new WorkerPool(numWorkers, 8080);
 
   await workerPool.ready();
@@ -14,7 +14,7 @@ async function main() {
   let isOk = true;
   console.time("getFileInfo");
 
-  let fileOpenResponse = await workerPool.openFile("/Users/angus/cubes/C.fits", "0");
+  let fileOpenResponse = await workerPool.openFile("/home/angus/cubes/C.fits", "0");
   if (!fileOpenResponse?.uuid) {
     console.error("no uuid");
     return false;
@@ -63,7 +63,7 @@ async function main() {
     return;
   }
 
-  fileOpenResponse = await workerPool.openFile("/Users/angus/cubes/fits/S255_IR_sci.spw29.cube.I.pbcor.fits", "0");
+  fileOpenResponse = await workerPool.openFile("/home/angus/cubes/S255_IR_sci.spw29.cube.I.pbcor.fits", "0");
   if (!fileOpenResponse?.uuid) {
     console.error("no uuid");
     return false;
@@ -72,8 +72,8 @@ async function main() {
   const uuid2 = fileOpenResponse.uuid;
 
   console.time("getSpectralProfile");
-  const w = 128;
-  const { data } = await workerPool.getSpectralProfile(uuid2, 968, 1033, 1, 1917, w, w, numWorkers);
+  const w = 16;
+  const { data } = await workerPool.getSpectralProfile(uuid2, 868, 833, 1, 1917, w, w, numWorkers);
   console.timeEnd("getSpectralProfile");
   console.log(arrayStats(data));
 

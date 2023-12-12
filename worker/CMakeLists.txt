@@ -16,7 +16,7 @@ if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
     LINK_DIRECTORIES(/opt/homebrew/lib)
 endif (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
-
+include(FindProtobuf)
 FIND_PACKAGE(PkgConfig REQUIRED)
 find_package(fmt)
 
