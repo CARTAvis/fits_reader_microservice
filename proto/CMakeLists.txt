@@ -1,9 +1,15 @@
 cmake_minimum_required(VERSION 3.15)
 
-FIND_PACKAGE(Protobuf REQUIRED)
-find_package(PkgConfig REQUIRED)
-pkg_search_module(GRPC REQUIRED grpc)
-pkg_search_module(GRPCPP REQUIRED grpc++>=1.22.0)
+
+if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+    find_package(protobuf CONFIG REQUIRED)
+    find_package(gRPC CONFIG REQUIRED)
+else ()
+    FIND_PACKAGE(Protobuf REQUIRED)
+    find_package(PkgConfig REQUIRED)
+    pkg_search_module(GRPC REQUIRED grpc)
+    pkg_search_module(GRPCPP REQUIRED grpc++>=1.22.0)
+endif (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
 set(PROTO_FILES
         fitsReaderProto/file_service.proto
@@ -16,10 +22,18 @@ add_library(fitsReaderProto ${PROTO_FILES})
 target_link_libraries(fitsReaderProto
         PUBLIC
         protobuf::libprotobuf
-        grpc
-        grpc++
+        gRPC::grpc
+        gRPC::grpc++
 )
 target_include_directories(fitsReaderProto PUBLIC ${CMAKE_CURRENT_BINARY_DIR})
 
-protobuf_generate(TARGET fitsReaderProto LANGUAGE cpp)
-protobuf_generate(TARGET fitsReaderProto LANGUAGE grpc GENERATE_EXTENSIONS .grpc.pb.h .grpc.pb.cc PLUGIN "protoc-gen-grpc=/usr/bin/grpc_cpp_plugin")
+
+if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+    get_target_property(grpc_cpp_plugin_location gRPC::grpc_cpp_plugin LOCATION)
+    protobuf_generate(TARGET fitsReaderProto LANGUAGE cpp)
+    protobuf_generate(TARGET fitsReaderProto LANGUAGE grpc GENERATE_EXTENSIONS .grpc.pb.h .grpc.pb.cc PLUGIN "protoc-gen-grpc=${grpc_cpp_plugin_location}")
+else ()
+    protobuf_generate(TARGET fitsReaderProto LANGUAGE cpp)
+    protobuf_generate(TARGET fitsReaderProto LANGUAGE grpc GENERATE_EXTENSIONS .grpc.pb.h .grpc.pb.cc PLUGIN "protoc-gen-grpc=/usr/bin/grpc_cpp_plugin")
+endif (${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+

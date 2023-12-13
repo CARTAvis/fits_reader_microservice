@@ -6,16 +6,18 @@ import { bytesToFloat32 } from "../utils/arrays";
 
 export class WorkerPool {
   readonly workers: FitsWorker[];
+  readonly useBuffering: boolean;
 
   ready() {
     return Promise.all(this.workers.map((worker) => worker.ready()));
   }
 
-  constructor(workerCount = 4, startPort = 8080) {
+  constructor(workerCount = 4, startPort = 8080, buffer = false) {
     if (workerCount < 1) {
       throw new Error("Worker count must be at least 1");
     }
 
+    this.useBuffering = buffer;
     this.workers = [];
     for (let i = 0; i < workerCount; i++) {
       this.workers.push(new FitsWorker(startPort + i));
@@ -70,7 +72,7 @@ export class WorkerPool {
     return worker?.getImageData({ uuid, start, numPixels });
   }
 
-  async getSpectralProfile(uuid: string, x: number, y: number, z: number, numPixels: number, width = 1, height = 1,numWorkers?: number) {
+  async getSpectralProfile(uuid: string, x: number, y: number, z: number, numPixels: number, width = 1, height = 1, numWorkers?: number) {
     if (!numWorkers) {
       numWorkers = this.workers.length;
     }
@@ -81,7 +83,7 @@ export class WorkerPool {
       // Last worker gets the remainder
       const numPixelsInChunk = (i === numWorkers - 1) ? numPixels - i * pixelsPerWorker : pixelsPerWorker;
       const worker = this.workers[i % this.workers.length];
-      promises.push(worker.getSpectralProfile({ uuid, x, y, z: zStart, width, height, numPixels: numPixelsInChunk }));
+      promises.push(worker.getSpectralProfile({ uuid, x, y, z: zStart, width, height, numPixels: numPixelsInChunk, buffered: this.useBuffering }));
     }
 
     return Promise.all(promises).then(res => {

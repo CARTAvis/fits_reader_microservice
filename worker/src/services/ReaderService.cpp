@@ -148,24 +148,14 @@ grpc::Status ReaderService::GetSpectralProfile(grpc::ServerContext* context, con
     return {grpc::StatusCode::NOT_FOUND, fmt::format("File with UUID {} not found", request->uuid())};
   }
   fitsfile* fits_ptr = it->second;
-
   int fits_status_code = 0;
-
-  int num_dims = 0;
-  int max_dims = 2;
-  std::vector<long> dims(max_dims);
-  int bit_pix = 0;
-  fits_get_img_param(fits_ptr, max_dims, &bit_pix, &num_dims, dims.data(), &fits_status_code);
-  if (fits_status_code != 0) {
-    return StatusFromFitsError(grpc::StatusCode::INVALID_ARGUMENT, fits_status_code, "Could not get image parameters");
-  }
 
   const auto num_pixels = request->numpixels();
   // TODO: support other data types!
   const auto num_bytes = num_pixels * sizeof(float);
   response->mutable_data()->resize(num_bytes);
 
-  if (width == 0 && height == 0) {
+  if (width <= 1 && height <= 1) {
     std::vector<long> start_pix = {request->x(), request->y(), request->z(), 1};
     std::vector<long> last_pix = {request->x() + width - 1, request->y() + height - 1, request->z() + request->numpixels() - 1, 1};
     std::vector<long> increment = {1, 1, 1, 1};
@@ -174,13 +164,18 @@ grpc::Status ReaderService::GetSpectralProfile(grpc::ServerContext* context, con
     if (fits_status_code != 0) {
       return StatusFromFitsError(grpc::StatusCode::INTERNAL, fits_status_code, "Could not read image data");
     }
-  } else {
-    const auto required_buffer_size = dims[0] * (height-1) + width;
+  } else if (request->buffered()) {
+    int num_dims = 0;
+    int max_dims = 2;
+    std::vector<long> dims(max_dims);
+    int bit_pix = 0;
+    fits_get_img_param(fits_ptr, max_dims, &bit_pix, &num_dims, dims.data(), &fits_status_code);
+    if (fits_status_code != 0) {
+      return StatusFromFitsError(grpc::StatusCode::INVALID_ARGUMENT, fits_status_code, "Could not get image parameters");
+    }
+    const auto required_buffer_size = dims[0] * (height - 1) + width;
     std::vector<float> required_buffer(required_buffer_size);
-
-//    const auto slice_size_pixels = width * height;
-//    std::vector<float> channel_buffer(slice_size_pixels);
-    float* data_ptr = reinterpret_cast<float*>(response->mutable_data()->data());
+    auto* data_ptr = reinterpret_cast<float*>(response->mutable_data()->data());
 
     for (auto i = 0; i < request->numpixels(); i++) {
       const auto channel = request->z() + i;
@@ -188,25 +183,15 @@ grpc::Status ReaderService::GetSpectralProfile(grpc::ServerContext* context, con
       std::vector<long> start_pix = {request->x(), request->y(), channel, 1};
       std::vector<long> last_pix = {request->x() + width - 1, request->y() + height - 1, channel, 1};
       std::vector<long> increment = {1, 1, 1, 1};
-
       fits_read_pix(fits_ptr, TFLOAT, start_pix.data(), required_buffer_size, nullptr, required_buffer.data(), nullptr, &fits_status_code);
-
-//      fits_read_subset(fits_ptr, TFLOAT, start_pix.data(), last_pix.data(), increment.data(), nullptr, channel_buffer.data(), nullptr,
-//                       &fits_status_code);
-//      if (fits_status_code != 0) {
-//        return StatusFromFitsError(grpc::StatusCode::INTERNAL, fits_status_code, "Could not read image data");
-//      }
+      if (fits_status_code != 0) {
+        return StatusFromFitsError(grpc::StatusCode::INTERNAL, fits_status_code, "Could not read image data");
+      }
 
       int count = 0;
       float sum = 0;
-//      for (const auto& value : channel_buffer) {
-//        if (std::isfinite(value)) {
-//          sum += value;
-//          count++;
-//        }
-//      }
-
       long offset = 0;
+
       for (int row = 0; row < height; row++) {
         for (int col = 0; col < width; col++) {
           const auto value = required_buffer[offset + col];
@@ -218,6 +203,36 @@ grpc::Status ReaderService::GetSpectralProfile(grpc::ServerContext* context, con
         offset += dims[0];
       }
 
+      const float channel_mean = count > 0 ? sum / count : NAN;
+      data_ptr[i] = channel_mean;
+    }
+  } else {
+    const auto slice_size_pixels = width * height;
+    std::vector<float> channel_buffer(slice_size_pixels);
+    auto* data_ptr = reinterpret_cast<float*>(response->mutable_data()->data());
+
+    for (auto i = 0; i < request->numpixels(); i++) {
+      const auto channel = request->z() + i;
+
+      std::vector<long> start_pix = {request->x(), request->y(), channel, 1};
+      std::vector<long> last_pix = {request->x() + width - 1, request->y() + height - 1, channel, 1};
+      std::vector<long> increment = {1, 1, 1, 1};
+
+      fits_read_subset(fits_ptr, TFLOAT, start_pix.data(), last_pix.data(), increment.data(), nullptr, channel_buffer.data(),
+      nullptr,
+                       &fits_status_code);
+      if (fits_status_code != 0) {
+        return StatusFromFitsError(grpc::StatusCode::INTERNAL, fits_status_code, "Could not read image data");
+      }
+
+      int count = 0;
+      float sum = 0;
+      for (const auto& value : channel_buffer) {
+        if (std::isfinite(value)) {
+          sum += value;
+          count++;
+        }
+      }
 
       const float channel_mean = count > 0 ? sum / count : NAN;
       data_ptr[i] = channel_mean;
