@@ -1,5 +1,8 @@
 #include "ReaderService.h"
 
+#include <boost/asio/io_context.hpp>
+#include <boost/asio/random_access_file.hpp>
+
 #include <fitsio.h>
 #include <fmt/format.h>
 #include <math.h>
@@ -54,6 +57,21 @@ grpc::Status ReaderService::CloseFile(grpc::ServerContext* context, const fitsRe
   }
   fits_files.erase(request->uuid());
   response->set_status(true);
+
+
+  boost::asio::io_context io_context;
+
+  boost::asio::random_access_file file(
+      io_context, "/path/to/file",
+      boost::asio::random_access_file::read_only);
+
+  file.async_read_some_at(1234, my_buffer,
+      [](error_code e, size_t n)
+      {
+        // ...
+      });
+
+
   return grpc::Status::OK;
 }
 

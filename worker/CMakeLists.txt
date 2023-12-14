@@ -20,6 +20,8 @@ include(FindProtobuf)
 FIND_PACKAGE(PkgConfig REQUIRED)
 find_package(fmt)
 
+find_package(Boost COMPONENTS system filesystem REQUIRED)
+
 FIND_PACKAGE(CFITSIO QUIET)
 if (CFITSIO_FOUND)
     message(STATUS "Found cfitsio using find_package")
